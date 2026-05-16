@@ -22,6 +22,7 @@ a gap analysis.
   HTTP calls across services.
 - Every Claude prompt lives in its own file under
   src/main/resources/prompts/ and is loaded by name.
+- Every Claude response is validated against a Java record before use.
 
 ## My preferences when working with me
 - Make small, focused commits with descriptive messages.
@@ -41,3 +42,7 @@ a gap analysis.
 - Tests: ./mvnw test
 - Postgres up: docker-compose up -d
 - Postgres down: docker-compose down
+
+## Secrets
+- ANTHROPIC_API_KEY lives in `.env` at the repo root, gitignored.
+- Never commit secrets, never echo them in logs.
