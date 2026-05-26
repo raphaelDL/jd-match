@@ -5,6 +5,7 @@ import com.anthropic.models.messages.StructuredContentBlock;
 import com.anthropic.models.messages.StructuredMessage;
 import com.anthropic.models.messages.StructuredMessageCreateParams;
 import com.anthropic.models.messages.StructuredTextBlock;
+import com.anthropic.models.messages.Usage;
 import com.anthropic.services.blocking.MessageService;
 import com.rafa.jdmatch.analysis.GapAnalysis;
 import com.rafa.jdmatch.analysis.RequirementAssessment;
@@ -61,8 +62,12 @@ class ClaudeClientTest {
         when(textBlock.text()).thenReturn(value);
         StructuredContentBlock<GapAnalysis> block = mock(StructuredContentBlock.class);
         when(block.text()).thenReturn(Optional.of(textBlock));
+        Usage usage = mock(Usage.class);
+        when(usage.inputTokens()).thenReturn(120L);
+        when(usage.outputTokens()).thenReturn(340L);
         StructuredMessage<GapAnalysis> message = mock(StructuredMessage.class);
         when(message.content()).thenReturn(List.of(block));
+        when(message.usage()).thenReturn(usage);
 
         when(anthropic.messages()).thenReturn(messages);
         when(messages.create(any(StructuredMessageCreateParams.class))).thenReturn(message);
