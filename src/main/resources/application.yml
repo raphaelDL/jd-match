@@ -13,9 +13,10 @@ spring:
       ddl-auto: validate
     open-in-view: false
 
-# Consumed once the Claude client is wired up (analysis slice).
 anthropic:
   api-key: ${ANTHROPIC_API_KEY:}
+  model: claude-sonnet-4-6
+  max-tokens: 2048
 
 server:
   port: 8080
