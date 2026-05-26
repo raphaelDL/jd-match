@@ -52,11 +52,11 @@ docker-compose up -d
 # Service
 ./mvnw spring-boot:run
 
-# Tests
+# Tests (a Postgres integration test runs via Testcontainers, so Docker must be running)
 ./mvnw test
 ```
 
-Set your `ANTHROPIC_API_KEY` in `.env` before running the service. See `.env.example`.
+Set your `ANTHROPIC_API_KEY` in `.env` before running the service (see `.env.example`); it is loaded automatically at startup.
 
 ## Design notes
 
