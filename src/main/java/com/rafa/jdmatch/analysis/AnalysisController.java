@@ -26,9 +26,13 @@ public class AnalysisController {
     @PostMapping
     public ResponseEntity<AnalysisResult> create(@Valid @RequestBody AnalyzeRequest request,
                                                  UriComponentsBuilder uriBuilder) {
-        AnalysisResult result = service.analyze(request.jdText(), request.resumeText());
-        URI location = uriBuilder.path("/analyses/{id}").buildAndExpand(result.id()).toUri();
-        return ResponseEntity.created(location).body(result);
+        AnalysisOutcome outcome = service.analyze(request.jdText(), request.resumeText());
+        URI location = uriBuilder.path("/analyses/{id}").buildAndExpand(outcome.result().id()).toUri();
+        // 201 for a freshly produced analysis; 200 when an identical request was
+        // already analyzed and we're returning the cached result.
+        return outcome.created()
+                ? ResponseEntity.created(location).body(outcome.result())
+                : ResponseEntity.ok().location(location).body(outcome.result());
     }
 
     @GetMapping("/{id}")
