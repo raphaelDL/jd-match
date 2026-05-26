@@ -12,6 +12,15 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+  ai:
+    mcp:
+      server:
+        name: jd-match
+        version: 0.1.0
+        protocol: STREAMABLE   # Streamable HTTP (served alongside the REST API)
+        type: SYNC
+        streamable-http:
+          mcp-endpoint: /mcp
 
 anthropic:
   api-key: ${ANTHROPIC_API_KEY:}
