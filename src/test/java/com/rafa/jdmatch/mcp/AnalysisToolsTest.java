@@ -13,7 +13,9 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -52,5 +54,28 @@ class AnalysisToolsTest {
                 .isInstanceOf(IllegalArgumentException.class);
 
         verifyNoInteractions(analysisService);
+    }
+
+    @Test
+    void getAnalysisDelegatesByParsedId() {
+        UUID id = UUID.randomUUID();
+        AnalysisResult result = new AnalysisResult(
+                id,
+                new GapAnalysis(70, "Decent", List.of(), List.of(), List.of()),
+                "claude-sonnet-4-6", Instant.now());
+        when(analysisService.get(id)).thenReturn(result);
+
+        AnalysisResult returned = tools.getAnalysis(id.toString());
+
+        assertThat(returned).isEqualTo(result);
+        verify(analysisService).get(id);
+    }
+
+    @Test
+    void getAnalysisRejectsMalformedIdWithoutCallingTheService() {
+        assertThatThrownBy(() -> tools.getAnalysis("not-a-uuid"))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(analysisService, never()).get(any());
     }
 }

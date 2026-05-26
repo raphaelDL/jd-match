@@ -1,5 +1,8 @@
 package com.rafa.jdmatch.mcp;
 
+import com.rafa.jdmatch.jd.ExtractedJd;
+import com.rafa.jdmatch.jd.JdRequirements;
+import com.rafa.jdmatch.jd.JdService;
 import com.rafa.jdmatch.jd.JdSimilarityService;
 import com.rafa.jdmatch.jd.SimilarJd;
 import org.junit.jupiter.api.Test;
@@ -17,8 +20,29 @@ import static org.mockito.Mockito.when;
 
 class JdToolsTest {
 
+    private final JdService jdService = mock(JdService.class);
     private final JdSimilarityService similarityService = mock(JdSimilarityService.class);
-    private final JdTools tools = new JdTools(similarityService);
+    private final JdTools tools = new JdTools(jdService, similarityService);
+
+    @Test
+    void extractJdRequirementsDelegatesToJdService() {
+        ExtractedJd extracted = new ExtractedJd(
+                UUID.randomUUID(),
+                new JdRequirements("Senior Backend Engineer", "Senior", List.of()));
+        when(jdService.getOrExtract("a job description")).thenReturn(extracted);
+
+        ExtractedJd result = tools.extractJdRequirements("a job description");
+
+        assertThat(result).isEqualTo(extracted);
+        verify(jdService).getOrExtract("a job description");
+    }
+
+    @Test
+    void extractJdRequirementsRejectsBlankInput() {
+        assertThatThrownBy(() -> tools.extractJdRequirements("  "))
+                .isInstanceOf(IllegalArgumentException.class);
+        verifyNoInteractions(jdService);
+    }
 
     @Test
     void findSimilarJdsDelegatesWithGivenTopK() {

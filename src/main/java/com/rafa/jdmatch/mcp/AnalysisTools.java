@@ -6,6 +6,8 @@ import org.springaicommunity.mcp.annotation.McpTool;
 import org.springaicommunity.mcp.annotation.McpToolParam;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 /**
  * jd-match's MCP tools. Each method is exposed to MCP clients (e.g. Claude Code,
  * Claude Desktop) and delegates to the existing service layer, so a tool call reuses
@@ -37,5 +39,23 @@ public class AnalysisTools {
         }
         // The REST layer enforces non-blank via @Valid; the tool path guards it here.
         return analysisService.analyze(jdText, resumeText).result();
+    }
+
+    @McpTool(
+            name = "get_analysis",
+            description = """
+                    Fetch a previously created gap analysis by its id. Returns the stored \
+                    analysis, the model that produced it, and when it was created.""")
+    public AnalysisResult getAnalysis(
+            @McpToolParam(description = "The analysis id (a UUID) returned when it was created.", required = true)
+            String analysisId) {
+
+        UUID id;
+        try {
+            id = UUID.fromString(analysisId);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("analysisId must be a valid UUID: " + analysisId);
+        }
+        return analysisService.get(id);
     }
 }
