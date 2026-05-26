@@ -40,7 +40,7 @@ Java 21 · Spring Boot 3 · Postgres · Docker · Anthropic Java SDK · AWS
 
 - [x] **Phase 1** — Core REST API, JD requirement extraction, resume storage, gap analysis pipeline
 - [x] **Phase 2** — MCP server wrapper so Claude Code and Claude Desktop can use jd-match as a tool
-- [ ] **Phase 3** — RAG layer over a corpus of past JDs for pattern recognition across similar roles
+- [x] **Phase 3** — RAG layer over a corpus of past JDs for pattern recognition across similar roles *(foundation: embedding + similarity search)*
 - [ ] **Phase 4** — AWS deployment and a write-up of the design decisions and tradeoffs
 
 ## Running locally
@@ -76,6 +76,16 @@ For **Claude Desktop**, add a custom connector pointing at `http://localhost:808
 - **`analyze_fit(jdText, resumeText)`** — returns a structured gap analysis (overall
   fit score, per-requirement assessments with evidence, strengths, and gaps). Backed by
   the same pipeline as `POST /analyses`, so results are cached and idempotent.
+- **`find_similar_jds(jdText, topK?)`** — returns previously analyzed JDs most similar to
+  the given text, ranked by embedding similarity. Same search as `POST /jds/similar`.
+
+## Similarity search
+
+Every JD extracted during an analysis is embedded (locally, via all-MiniLM-L6-v2 — no
+API key) and stored in Postgres with `pgvector`. `POST /jds/similar {jdText, topK?}`
+(and the `find_similar_jds` MCP tool) returns the closest past JDs by cosine distance.
+This needs the `pgvector` extension, so local Postgres runs the `pgvector/pgvector:pg16`
+image (see `docker-compose.yml`); AWS RDS supports it as an extension.
 
 ## Design notes
 
