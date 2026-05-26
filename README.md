@@ -38,7 +38,7 @@ Java 21 · Spring Boot 3 · Postgres · Docker · Anthropic Java SDK · AWS
 
 ## Roadmap
 
-- [ ] **Phase 1** — Core REST API, JD requirement extraction, resume storage, gap analysis pipeline
+- [x] **Phase 1** — Core REST API, JD requirement extraction, resume storage, gap analysis pipeline
 - [ ] **Phase 2** — MCP server wrapper so Claude Code and Claude Desktop can use jd-match as a tool
 - [ ] **Phase 3** — RAG layer over a corpus of past JDs for pattern recognition across similar roles
 - [ ] **Phase 4** — AWS deployment and a write-up of the design decisions and tradeoffs
