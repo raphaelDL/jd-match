@@ -20,12 +20,27 @@
     <properties>
         <java.version>21</java.version>
         <anthropic.version>2.34.0</anthropic.version>
+        <spring-ai.version>1.1.7</spring-ai.version>
         <!-- docker-java (pulled in by Testcontainers) defaults its Docker API version
              to 1.32, which Docker Engine 29+ rejects (minimum 1.40). Pin a modern
              version for the Docker client integration tests use. Override on machines
              with an older daemon via -Ddocker.api.version=<version>. -->
         <docker.api.version>1.44</docker.api.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring AI BOM — manages the MCP server starter + MCP Java SDK versions
+                 (Spring AI 1.1.x supports Spring Boot 3.4.x / 3.5.x) -->
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- Web / JPA / Validation -->
@@ -55,6 +70,13 @@
             <groupId>com.anthropic</groupId>
             <artifactId>anthropic-java</artifactId>
             <version>${anthropic.version}</version>
+        </dependency>
+
+        <!-- MCP server over the existing WebMVC stack (Streamable HTTP); exposes
+             jd-match's analysis as a tool for MCP clients like Claude Code/Desktop -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
         </dependency>
 
         <!-- Postgres driver -->
