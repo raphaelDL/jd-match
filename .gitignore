@@ -1,6 +1,16 @@
+# Secrets
 .env
+
+# Maven build output
 target/
+
+# IDEs
 .idea/
+*.iml
 .vscode/
-.DS_Store/
+.settings/
+.project
+.classpath
+
+# OS
 .DS_Store

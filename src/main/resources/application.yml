@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: jd-match
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:jdmatch}
+    username: ${DB_USER:jdmatch}
+    password: ${DB_PASSWORD:jdmatch}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+anthropic:
+  api-key: ${ANTHROPIC_API_KEY:}
+  model: claude-sonnet-4-6
+  max-tokens: 2048
+
+server:
+  port: 8080
