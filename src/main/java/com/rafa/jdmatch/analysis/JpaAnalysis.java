@@ -11,9 +11,9 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Persisted analysis row. A plain class (not a record) because JPA requires a
- * no-arg constructor and mutable mapping. The structured result is stored as
- * {@code jsonb}; callers deserialize {@code analysisJson} into a {@link GapAnalysis}.
+ * Persisted analysis row. A plain class (not a record) because JPA requires a no-arg
+ * constructor and mutable mapping. Links to the JD and resume it was produced from;
+ * the structured result is stored as {@code jsonb}.
  */
 @Entity
 @Table(name = "analyses")
@@ -26,11 +26,11 @@ public class JpaAnalysis {
     @Column(name = "idempotency_key", nullable = false, unique = true, updatable = false, length = 64)
     private String idempotencyKey;
 
-    @Column(name = "jd_text", nullable = false, updatable = false, columnDefinition = "text")
-    private String jdText;
+    @Column(name = "jd_id", updatable = false)
+    private UUID jdId;
 
-    @Column(name = "resume_text", nullable = false, updatable = false, columnDefinition = "text")
-    private String resumeText;
+    @Column(name = "resume_id", updatable = false)
+    private UUID resumeId;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "analysis_json", nullable = false, columnDefinition = "jsonb")
@@ -49,12 +49,12 @@ public class JpaAnalysis {
         // for JPA
     }
 
-    public JpaAnalysis(UUID id, String idempotencyKey, String jdText, String resumeText,
+    public JpaAnalysis(UUID id, String idempotencyKey, UUID jdId, UUID resumeId,
                        String analysisJson, String model, String promptVersion, Instant createdAt) {
         this.id = id;
         this.idempotencyKey = idempotencyKey;
-        this.jdText = jdText;
-        this.resumeText = resumeText;
+        this.jdId = jdId;
+        this.resumeId = resumeId;
         this.analysisJson = analysisJson;
         this.model = model;
         this.promptVersion = promptVersion;
@@ -69,12 +69,12 @@ public class JpaAnalysis {
         return idempotencyKey;
     }
 
-    public String getJdText() {
-        return jdText;
+    public UUID getJdId() {
+        return jdId;
     }
 
-    public String getResumeText() {
-        return resumeText;
+    public UUID getResumeId() {
+        return resumeId;
     }
 
     public String getAnalysisJson() {

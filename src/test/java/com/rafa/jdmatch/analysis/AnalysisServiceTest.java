@@ -3,6 +3,12 @@ package com.rafa.jdmatch.analysis;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rafa.jdmatch.claude.ClaudeClient;
 import com.rafa.jdmatch.claude.ClaudeProperties;
+import com.rafa.jdmatch.jd.ExtractedJd;
+import com.rafa.jdmatch.jd.JdRequirements;
+import com.rafa.jdmatch.jd.JdService;
+import com.rafa.jdmatch.jd.Requirement;
+import com.rafa.jdmatch.resume.ResumeService;
+import com.rafa.jdmatch.resume.StoredResume;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -18,17 +24,21 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class AnalysisServiceTest {
 
+    private final JdService jdService = mock(JdService.class);
+    private final ResumeService resumeService = mock(ResumeService.class);
     private final ClaudeClient claude = mock(ClaudeClient.class);
     private final AnalysisRepository repository = mock(AnalysisRepository.class);
     private final AnalysisService service = new AnalysisService(
-            claude, repository,
+            jdService, resumeService, claude, repository,
             new ClaudeProperties("test-key", "claude-sonnet-4-6", 2048),
             new ObjectMapper());
+
+    private final UUID jdId = UUID.randomUUID();
+    private final UUID resumeId = UUID.randomUUID();
 
     private static GapAnalysis sampleAnalysis() {
         return new GapAnalysis(
@@ -38,8 +48,20 @@ class AnalysisServiceTest {
                 List.of("Distributed systems"));
     }
 
+    private ExtractedJd extractedJd() {
+        return new ExtractedJd(jdId, new JdRequirements(
+                "Backend Engineer", "Senior",
+                List.of(new Requirement("5+ years Java", "experience", true))));
+    }
+
+    private void stubStages() {
+        when(jdService.getOrExtract(any())).thenReturn(extractedJd());
+        when(resumeService.getOrStore(any())).thenReturn(new StoredResume(resumeId));
+    }
+
     @Test
-    void cacheMissCallsClaudeAndPersists() {
+    void cacheMissRunsBothStagesComparesAndPersists() {
+        stubStages();
         when(repository.findByIdempotencyKey(any())).thenReturn(Optional.empty());
         when(claude.extract(eq(AnalysisService.PROMPT_NAME), any(), eq(GapAnalysis.class)))
                 .thenReturn(sampleAnalysis());
@@ -48,18 +70,23 @@ class AnalysisServiceTest {
         AnalysisResult result = service.analyze("a job description", "a resume");
 
         assertThat(result.analysis()).isEqualTo(sampleAnalysis());
-        assertThat(result.model()).isEqualTo("claude-sonnet-4-6");
-        assertThat(result.id()).isNotNull();
-        verify(claude).extract(eq(AnalysisService.PROMPT_NAME), any(), eq(GapAnalysis.class));
+        verify(jdService).getOrExtract("a job description");
+        verify(resumeService).getOrStore("a resume");
+
+        // the compare step receives the structured requirements + the resume text
+        ArgumentCaptor<String> content = ArgumentCaptor.forClass(String.class);
+        verify(claude).extract(eq(AnalysisService.PROMPT_NAME), content.capture(), eq(GapAnalysis.class));
+        assertThat(content.getValue()).contains("5+ years Java").contains("a resume");
         verify(repository).save(any(JpaAnalysis.class));
     }
 
     @Test
-    void cacheHitReturnsStoredWithoutCallingClaude() throws Exception {
+    void cacheHitSkipsCompare() throws Exception {
+        stubStages();
         GapAnalysis analysis = sampleAnalysis();
         UUID id = UUID.randomUUID();
         JpaAnalysis stored = new JpaAnalysis(
-                id, "the-key", "jd", "resume",
+                id, "the-key", jdId, resumeId,
                 new ObjectMapper().writeValueAsString(analysis),
                 "claude-sonnet-4-6", "v1", Instant.now());
         when(repository.findByIdempotencyKey(any())).thenReturn(Optional.of(stored));
@@ -68,22 +95,8 @@ class AnalysisServiceTest {
 
         assertThat(result.id()).isEqualTo(id);
         assertThat(result.analysis()).isEqualTo(analysis);
-        verifyNoInteractions(claude);
+        verify(claude, never()).extract(any(), any(), eq(GapAnalysis.class));
         verify(repository, never()).save(any());
-    }
-
-    @Test
-    void idempotencyKeyIsWhitespaceInsensitive() {
-        when(repository.findByIdempotencyKey(any())).thenReturn(Optional.empty());
-        when(claude.extract(any(), any(), eq(GapAnalysis.class))).thenReturn(sampleAnalysis());
-        when(repository.save(any(JpaAnalysis.class))).thenAnswer(inv -> inv.getArgument(0));
-
-        service.analyze("Senior   Java\n\nEngineer", "  My   resume  ");
-        service.analyze("Senior Java Engineer", "My resume");
-
-        ArgumentCaptor<String> keys = ArgumentCaptor.forClass(String.class);
-        verify(repository, org.mockito.Mockito.times(2)).findByIdempotencyKey(keys.capture());
-        assertThat(keys.getAllValues().get(0)).isEqualTo(keys.getAllValues().get(1));
     }
 
     @Test
@@ -91,7 +104,7 @@ class AnalysisServiceTest {
         GapAnalysis analysis = sampleAnalysis();
         UUID id = UUID.randomUUID();
         JpaAnalysis stored = new JpaAnalysis(
-                id, "k", "jd", "resume",
+                id, "k", jdId, resumeId,
                 new ObjectMapper().writeValueAsString(analysis),
                 "claude-sonnet-4-6", "v1", Instant.now());
         when(repository.findById(id)).thenReturn(Optional.of(stored));

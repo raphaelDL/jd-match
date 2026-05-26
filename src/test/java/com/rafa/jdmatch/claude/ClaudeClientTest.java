@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * Unit test for the gateway: the SDK client is mocked, so this runs with no network
- * call and no API key. The real {@link PromptLoader} loads gap-analysis.txt from the
+ * call and no API key. The real {@link PromptLoader} loads compare-requirements.txt from the
  * classpath.
  */
 class ClaudeClientTest {
@@ -41,7 +41,7 @@ class ClaudeClientTest {
                 List.of("Distributed systems"));
         stubResponseReturning(expected);
 
-        GapAnalysis result = client.extract("gap-analysis", "JD + resume", GapAnalysis.class);
+        GapAnalysis result = client.extract("compare-requirements", "JD + resume", GapAnalysis.class);
 
         assertThat(result).isEqualTo(expected);
     }
@@ -50,7 +50,7 @@ class ClaudeClientTest {
     void throwsWhenNoStructuredContent() {
         stubEmptyResponse();
 
-        assertThatThrownBy(() -> client.extract("gap-analysis", "x", GapAnalysis.class))
+        assertThatThrownBy(() -> client.extract("compare-requirements", "x", GapAnalysis.class))
                 .isInstanceOf(ClaudeException.class)
                 .hasMessageContaining("no structured content");
     }
