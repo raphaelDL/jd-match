@@ -37,6 +37,14 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- Loads .env from the repo root into the Spring Environment at startup,
+             so ${ANTHROPIC_API_KEY} etc. resolve without sourcing .env by hand -->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+
         <!-- Anthropic Java SDK (declared now; wired up in the analysis slice) -->
         <dependency>
             <groupId>com.anthropic</groupId>
