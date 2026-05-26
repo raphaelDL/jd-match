@@ -76,6 +76,9 @@ For **Claude Desktop**, add a custom connector pointing at `http://localhost:808
 - **`analyze_fit(jdText, resumeText)`** — returns a structured gap analysis (overall
   fit score, per-requirement assessments with evidence, strengths, and gaps). Backed by
   the same pipeline as `POST /analyses`, so results are cached and idempotent.
+- **`extract_jd_requirements(jdText)`** — returns the structured requirements for a JD
+  (role title, seniority, categorized requirements). Cached per JD.
+- **`get_analysis(analysisId)`** — fetches a previously created analysis by id.
 - **`find_similar_jds(jdText, topK?)`** — returns previously analyzed JDs most similar to
   the given text, ranked by embedding similarity. Same search as `POST /jds/similar`.
 
