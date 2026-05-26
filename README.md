@@ -39,7 +39,7 @@ Java 21 · Spring Boot 3 · Postgres · Docker · Anthropic Java SDK · AWS
 ## Roadmap
 
 - [x] **Phase 1** — Core REST API, JD requirement extraction, resume storage, gap analysis pipeline
-- [ ] **Phase 2** — MCP server wrapper so Claude Code and Claude Desktop can use jd-match as a tool
+- [x] **Phase 2** — MCP server wrapper so Claude Code and Claude Desktop can use jd-match as a tool
 - [ ] **Phase 3** — RAG layer over a corpus of past JDs for pattern recognition across similar roles
 - [ ] **Phase 4** — AWS deployment and a write-up of the design decisions and tradeoffs
 
@@ -57,6 +57,25 @@ docker-compose up -d
 ```
 
 Set your `ANTHROPIC_API_KEY` in `.env` before running the service (see `.env.example`); it is loaded automatically at startup.
+
+## Use as an MCP server
+
+The running service also speaks the Model Context Protocol over Streamable HTTP at
+`/mcp`, so MCP clients can call it as a tool. Start the service, then register it:
+
+```bash
+# Claude Code
+claude mcp add --transport http jd-match http://localhost:8080/mcp
+```
+
+For **Claude Desktop**, add a custom connector pointing at `http://localhost:8080/mcp`
+(Settings → Connectors → Add custom connector).
+
+### Tools
+
+- **`analyze_fit(jdText, resumeText)`** — returns a structured gap analysis (overall
+  fit score, per-requirement assessments with evidence, strengths, and gaps). Backed by
+  the same pipeline as `POST /analyses`, so results are cached and idempotent.
 
 ## Design notes
 
