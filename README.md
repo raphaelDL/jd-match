@@ -41,7 +41,7 @@ Java 21 · Spring Boot 3 · Postgres · Docker · Anthropic Java SDK · AWS
 - [x] **Phase 1** — Core REST API, JD requirement extraction, resume storage, gap analysis pipeline
 - [x] **Phase 2** — MCP server wrapper so Claude Code and Claude Desktop can use jd-match as a tool
 - [x] **Phase 3** — RAG layer over a corpus of past JDs for pattern recognition across similar roles *(foundation: embedding + similarity search)*
-- [ ] **Phase 4** — AWS deployment and a write-up of the design decisions and tradeoffs
+- [x] **Phase 4** — AWS deployment and a write-up of the design decisions and tradeoffs
 
 ## Running locally
 
@@ -87,9 +87,16 @@ API key) and stored in Postgres with `pgvector`. `POST /jds/similar {jdText, top
 This needs the `pgvector` extension, so local Postgres runs the `pgvector/pgvector:pg16`
 image (see `docker-compose.yml`); AWS RDS supports it as an extension.
 
+## Deploying to AWS
+
+A container image and Terraform for **AWS App Runner + RDS Postgres (pgvector)** live under
+[`deploy/terraform/`](deploy/terraform/README.md). Build it with `docker build .` — the
+image bundles the embedding model and native libs so it starts without downloading anything
+(`ai.djl.offline=true`). App Runner health-checks `/actuator/health/readiness`.
+
 ## Design notes
 
-A few decisions worth calling out:
+A few decisions worth calling out (full write-up in [`DESIGN.md`](DESIGN.md)):
 
 - **Structured outputs over free-form generation.** Every call to Claude returns JSON validated against a Java record. This makes the AI a reliable component of a larger system rather than a chatty wrapper.
 - **Prompts as resources, not strings.** Prompts live in `src/main/resources/prompts/` so they can be versioned, diff-reviewed, and swapped without touching code.

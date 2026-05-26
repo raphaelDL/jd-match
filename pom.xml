@@ -21,6 +21,11 @@
         <java.version>21</java.version>
         <anthropic.version>2.34.0</anthropic.version>
         <spring-ai.version>1.1.7</spring-ai.version>
+        <!-- DJL PyTorch native, bundled into the container image (see the linux-image
+             profile) so embeddings never download native libs at runtime. Versions
+             match what DJL 0.32.0 resolves (PyTorch 2.5.1). -->
+        <pytorch.native.version>2.5.1</pytorch.native.version>
+        <pytorch.jni.version>2.5.1-0.32.0</pytorch.jni.version>
         <!-- docker-java (pulled in by Testcontainers) defaults its Docker API version
              to 1.32, which Docker Engine 29+ rejects (minimum 1.40). Pin a modern
              version for the Docker client integration tests use. Override on machines
@@ -55,6 +60,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- Health/readiness probes for the container (e.g. App Runner health check) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
         <!-- Loads .env from the repo root into the Spring Environment at startup,
@@ -150,4 +161,29 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- Activated by the Docker build (-Plinux-image) to bundle the linux/amd64
+             PyTorch native libs into the jar. With ai.djl.offline=true set in the
+             container, embeddings then load with no runtime download. Not active for
+             local builds, so dev machines still auto-fetch their own native libs. -->
+        <profile>
+            <id>linux-image</id>
+            <dependencies>
+                <dependency>
+                    <groupId>ai.djl.pytorch</groupId>
+                    <artifactId>pytorch-native-cpu</artifactId>
+                    <classifier>linux-x86_64</classifier>
+                    <version>${pytorch.native.version}</version>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>ai.djl.pytorch</groupId>
+                    <artifactId>pytorch-jni</artifactId>
+                    <version>${pytorch.jni.version}</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 </project>
