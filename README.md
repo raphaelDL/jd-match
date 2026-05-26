@@ -2,7 +2,7 @@
 
 A Spring Boot 3 / Java 21 backend service that uses the Anthropic API to extract structured requirements from job descriptions and produce a gap analysis against a resume.
 
-**Status:** In active development, May 2026.
+**Status:** v0.1 complete — all four roadmap phases shipped. Exploring v0.2, May 2026.
 
 ## Why this exists
 
