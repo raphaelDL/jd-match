@@ -6,10 +6,12 @@ import com.rafa.jdmatch.claude.ClaudeClient;
 import com.rafa.jdmatch.claude.ClaudeException;
 import com.rafa.jdmatch.claude.ClaudeProperties;
 import com.rafa.jdmatch.common.Hashing;
+import com.rafa.jdmatch.common.PageResponse;
 import com.rafa.jdmatch.jd.ExtractedJd;
 import com.rafa.jdmatch.jd.JdService;
 import com.rafa.jdmatch.resume.ResumeService;
 import com.rafa.jdmatch.resume.StoredResume;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,6 +65,17 @@ public class AnalysisService {
         return repository.findById(id)
                 .map(this::toResult)
                 .orElseThrow(() -> new AnalysisNotFoundException(id));
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<AnalysisSummary> list(Pageable pageable) {
+        return PageResponse.of(repository.findAll(pageable).map(this::toSummary));
+    }
+
+    private AnalysisSummary toSummary(JpaAnalysis entity) {
+        return new AnalysisSummary(
+                entity.getId(), fromJson(entity.getAnalysisJson()).overallFitScore(),
+                entity.getModel(), entity.getCreatedAt());
     }
 
     private AnalysisResult compare(String key, ExtractedJd jd, UUID resumeId, String resumeText) {

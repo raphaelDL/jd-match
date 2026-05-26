@@ -70,6 +70,22 @@ class JdServiceTest {
     }
 
     @Test
+    void reindexAllIndexesEveryStoredJd() throws Exception {
+        UUID id1 = UUID.randomUUID();
+        UUID id2 = UUID.randomUUID();
+        ObjectMapper mapper = new ObjectMapper();
+        Jd jd1 = new Jd(id1, "h1", "jd one", mapper.writeValueAsString(sample()), "m", "v1", Instant.now());
+        Jd jd2 = new Jd(id2, "h2", "jd two", mapper.writeValueAsString(sample()), "m", "v1", Instant.now());
+        when(repository.findAll()).thenReturn(List.of(jd1, jd2));
+
+        int count = service.reindexAll();
+
+        assertThat(count).isEqualTo(2);
+        verify(similarityService).index(eq(id1), eq("jd one"), eq(sample()));
+        verify(similarityService).index(eq(id2), eq("jd two"), eq(sample()));
+    }
+
+    @Test
     void sameJdHashesEquallyRegardlessOfWhitespace() {
         when(repository.findByJdHash(any())).thenReturn(Optional.empty());
         when(claude.extract(any(), any(), eq(JdRequirements.class))).thenReturn(sample());

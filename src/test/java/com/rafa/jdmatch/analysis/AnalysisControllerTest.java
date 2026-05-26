@@ -1,6 +1,7 @@
 package com.rafa.jdmatch.analysis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rafa.jdmatch.common.PageResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -97,5 +98,20 @@ class AnalysisControllerTest {
 
         mockMvc.perform(get("/analyses/{id}", id))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void listReturnsPageOfSummaries() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(service.list(any())).thenReturn(new PageResponse<>(
+                List.of(new AnalysisSummary(id, 82, "claude-sonnet-4-6",
+                        Instant.parse("2026-05-25T12:00:00Z"))),
+                0, 20, 1, 1));
+
+        mockMvc.perform(get("/analyses"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(id.toString()))
+                .andExpect(jsonPath("$.content[0].overallFitScore").value(82))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 }

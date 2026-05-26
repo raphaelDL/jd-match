@@ -1,6 +1,10 @@
 package com.rafa.jdmatch.analysis;
 
+import com.rafa.jdmatch.common.PageResponse;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,6 +37,13 @@ public class AnalysisController {
         return outcome.created()
                 ? ResponseEntity.created(location).body(outcome.result())
                 : ResponseEntity.ok().location(location).body(outcome.result());
+    }
+
+    @GetMapping
+    public PageResponse<AnalysisSummary> list(
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable) {
+        return service.list(pageable);
     }
 
     @GetMapping("/{id}")

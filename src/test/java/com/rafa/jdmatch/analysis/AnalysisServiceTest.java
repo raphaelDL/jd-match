@@ -11,6 +11,9 @@ import com.rafa.jdmatch.resume.ResumeService;
 import com.rafa.jdmatch.resume.StoredResume;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.List;
@@ -121,5 +124,23 @@ class AnalysisServiceTest {
 
         assertThatThrownBy(() -> service.get(id))
                 .isInstanceOf(AnalysisNotFoundException.class);
+    }
+
+    @Test
+    void listMapsStoredAnalysesToSummaries() throws Exception {
+        UUID id = UUID.randomUUID();
+        JpaAnalysis stored = new JpaAnalysis(
+                id, "k", jdId, resumeId,
+                new ObjectMapper().writeValueAsString(sampleAnalysis()),
+                "claude-sonnet-4-6", "v1", Instant.now());
+        when(repository.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(stored), PageRequest.of(0, 20), 1));
+
+        var page = service.list(PageRequest.of(0, 20));
+
+        assertThat(page.totalElements()).isEqualTo(1);
+        assertThat(page.content()).hasSize(1);
+        assertThat(page.content().get(0).id()).isEqualTo(id);
+        assertThat(page.content().get(0).overallFitScore()).isEqualTo(82);
     }
 }

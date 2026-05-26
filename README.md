@@ -88,7 +88,8 @@ Every JD extracted during an analysis is embedded (locally, via all-MiniLM-L6-v2
 API key) and stored in Postgres with `pgvector`. `POST /jds/similar {jdText, topK?}`
 (and the `find_similar_jds` MCP tool) returns the closest past JDs by cosine distance.
 This needs the `pgvector` extension, so local Postgres runs the `pgvector/pgvector:pg16`
-image (see `docker-compose.yml`); AWS RDS supports it as an extension.
+image (see `docker-compose.yml`); AWS RDS supports it as an extension. `POST /jds/reindex`
+re-embeds every stored JD — a backfill for JDs added before similarity search existed.
 
 ## Deploying to AWS
 
