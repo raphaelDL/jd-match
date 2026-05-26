@@ -29,6 +29,18 @@ class JdControllerTest {
     @MockitoBean
     private JdSimilarityService similarityService;
 
+    @MockitoBean
+    private JdService jdService;
+
+    @Test
+    void postReindexReturnsCount() throws Exception {
+        when(jdService.reindexAll()).thenReturn(3);
+
+        mockMvc.perform(post("/jds/reindex"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.indexed").value(3));
+    }
+
     @Test
     void postSimilarReturnsMatches() throws Exception {
         UUID jdId = UUID.randomUUID();
