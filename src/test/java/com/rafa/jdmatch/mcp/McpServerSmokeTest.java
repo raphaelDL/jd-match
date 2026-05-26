@@ -1,5 +1,6 @@
 package com.rafa.jdmatch.mcp;
 
+import com.rafa.jdmatch.TestImages;
 import com.rafa.jdmatch.claude.ClaudeClient;
 import io.modelcontextprotocol.server.McpSyncServer;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ class McpServerSmokeTest {
 
     @Container
     @ServiceConnection
-    static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
+    static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(TestImages.PGVECTOR);
 
     @MockitoBean
     private ClaudeClient claudeClient;

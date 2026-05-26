@@ -23,10 +23,11 @@ class JdServiceTest {
 
     private final ClaudeClient claude = mock(ClaudeClient.class);
     private final JdRepository repository = mock(JdRepository.class);
+    private final JdSimilarityService similarityService = mock(JdSimilarityService.class);
     private final JdService service = new JdService(
             claude, repository,
             new ClaudeProperties("test-key", "claude-sonnet-4-6", 2048),
-            new ObjectMapper());
+            new ObjectMapper(), similarityService);
 
     private static JdRequirements sample() {
         return new JdRequirements("Senior Backend Engineer", "Senior",
@@ -47,6 +48,7 @@ class JdServiceTest {
         assertThat(result.id()).isNotNull();
         verify(claude).extract(eq(JdService.PROMPT_NAME), any(), eq(JdRequirements.class));
         verify(repository).save(any(Jd.class));
+        verify(similarityService).index(eq(result.id()), eq("a job description"), eq(sample()));
     }
 
     @Test
@@ -63,6 +65,7 @@ class JdServiceTest {
         assertThat(result.id()).isEqualTo(id);
         assertThat(result.requirements()).isEqualTo(requirements);
         verifyNoInteractions(claude);
+        verifyNoInteractions(similarityService);
         verify(repository, never()).save(any());
     }
 

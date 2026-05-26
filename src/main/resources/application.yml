@@ -13,6 +13,8 @@ spring:
       ddl-auto: validate
     open-in-view: false
   ai:
+    model:
+      embedding: transformers   # local ONNX all-MiniLM-L6-v2 (384d), no API key
     mcp:
       server:
         name: jd-match
@@ -21,6 +23,13 @@ spring:
         type: SYNC
         streamable-http:
           mcp-endpoint: /mcp
+    vectorstore:
+      pgvector:
+        initialize-schema: false   # Flyway owns the schema (V5__enable_pgvector.sql)
+        dimensions: 384
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+        table-name: vector_store
 
 anthropic:
   api-key: ${ANTHROPIC_API_KEY:}
