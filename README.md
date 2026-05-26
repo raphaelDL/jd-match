@@ -38,7 +38,7 @@ Java 21 · Spring Boot 3 · Postgres · Docker · Anthropic Java SDK · AWS
 
 ## Roadmap
 
-- [ ] **Phase 1** — Core REST API, JD requirement extraction, resume storage, gap analysis pipeline
+- [x] **Phase 1** — Core REST API, JD requirement extraction, resume storage, gap analysis pipeline
 - [ ] **Phase 2** — MCP server wrapper so Claude Code and Claude Desktop can use jd-match as a tool
 - [ ] **Phase 3** — RAG layer over a corpus of past JDs for pattern recognition across similar roles
 - [ ] **Phase 4** — AWS deployment and a write-up of the design decisions and tradeoffs
@@ -52,11 +52,11 @@ docker-compose up -d
 # Service
 ./mvnw spring-boot:run
 
-# Tests
+# Tests (a Postgres integration test runs via Testcontainers, so Docker must be running)
 ./mvnw test
 ```
 
-Set your `ANTHROPIC_API_KEY` in `.env` before running the service. See `.env.example`.
+Set your `ANTHROPIC_API_KEY` in `.env` before running the service (see `.env.example`); it is loaded automatically at startup.
 
 ## Design notes
 

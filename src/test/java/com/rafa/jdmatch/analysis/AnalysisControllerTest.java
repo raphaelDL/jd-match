@@ -44,7 +44,7 @@ class AnalysisControllerTest {
     @Test
     void postCreatesAnalysisAndReturns201WithLocation() throws Exception {
         UUID id = UUID.randomUUID();
-        when(service.analyze(any(), any())).thenReturn(sampleResult(id));
+        when(service.analyze(any(), any())).thenReturn(new AnalysisOutcome(sampleResult(id), true));
 
         String body = objectMapper.writeValueAsString(
                 new AnalyzeRequest("a job description", "a resume"));
@@ -55,6 +55,20 @@ class AnalysisControllerTest {
                 .andExpect(jsonPath("$.id").value(id.toString()))
                 .andExpect(jsonPath("$.analysis.overallFitScore").value(82))
                 .andExpect(jsonPath("$.model").value("claude-sonnet-4-6"));
+    }
+
+    @Test
+    void postReturns200WithLocationWhenResultIsCached() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(service.analyze(any(), any())).thenReturn(new AnalysisOutcome(sampleResult(id), false));
+
+        String body = objectMapper.writeValueAsString(
+                new AnalyzeRequest("a job description", "a resume"));
+
+        mockMvc.perform(post("/analyses").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Location", "http://localhost/analyses/" + id))
+                .andExpect(jsonPath("$.id").value(id.toString()));
     }
 
     @Test

@@ -47,14 +47,15 @@ public class AnalysisService {
     }
 
     @Transactional
-    public AnalysisResult analyze(String jdText, String resumeText) {
+    public AnalysisOutcome analyze(String jdText, String resumeText) {
         ExtractedJd jd = jdService.getOrExtract(jdText);
         StoredResume resume = resumeService.getOrStore(resumeText);
 
         String key = idempotencyKey(jd.id(), resume.id());
         return repository.findByIdempotencyKey(key)
                 .map(this::toResult)
-                .orElseGet(() -> compare(key, jd, resume.id(), resumeText));
+                .map(result -> new AnalysisOutcome(result, false))
+                .orElseGet(() -> new AnalysisOutcome(compare(key, jd, resume.id(), resumeText), true));
     }
 
     @Transactional(readOnly = true)

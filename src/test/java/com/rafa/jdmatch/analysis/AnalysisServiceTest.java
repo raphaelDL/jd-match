@@ -67,9 +67,10 @@ class AnalysisServiceTest {
                 .thenReturn(sampleAnalysis());
         when(repository.save(any(JpaAnalysis.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        AnalysisResult result = service.analyze("a job description", "a resume");
+        AnalysisOutcome outcome = service.analyze("a job description", "a resume");
 
-        assertThat(result.analysis()).isEqualTo(sampleAnalysis());
+        assertThat(outcome.created()).isTrue();
+        assertThat(outcome.result().analysis()).isEqualTo(sampleAnalysis());
         verify(jdService).getOrExtract("a job description");
         verify(resumeService).getOrStore("a resume");
 
@@ -91,10 +92,11 @@ class AnalysisServiceTest {
                 "claude-sonnet-4-6", "v1", Instant.now());
         when(repository.findByIdempotencyKey(any())).thenReturn(Optional.of(stored));
 
-        AnalysisResult result = service.analyze("jd", "resume");
+        AnalysisOutcome outcome = service.analyze("jd", "resume");
 
-        assertThat(result.id()).isEqualTo(id);
-        assertThat(result.analysis()).isEqualTo(analysis);
+        assertThat(outcome.created()).isFalse();
+        assertThat(outcome.result().id()).isEqualTo(id);
+        assertThat(outcome.result().analysis()).isEqualTo(analysis);
         verify(claude, never()).extract(any(), any(), eq(GapAnalysis.class));
         verify(repository, never()).save(any());
     }
