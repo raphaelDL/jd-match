@@ -1,5 +1,6 @@
 package com.rafa.jdmatch.analysis;
 
+import com.rafa.jdmatch.TestImages;
 import com.rafa.jdmatch.claude.ClaudeClient;
 import com.rafa.jdmatch.jd.JdRequirements;
 import com.rafa.jdmatch.jd.Requirement;
@@ -33,7 +34,7 @@ class AnalysisPipelineIntegrationTest {
 
     @Container
     @ServiceConnection
-    static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
+    static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(TestImages.PGVECTOR);
 
     @MockitoBean
     private ClaudeClient claudeClient;
